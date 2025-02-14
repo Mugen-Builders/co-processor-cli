@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_mac_and_linux:
+  build_aarch64_apple_and_linux:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -15,10 +15,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            archive: tar.gz tar.xz zip
-          - target: x86_64-apple-darwin
-            os: macos-latest
+            os: ubuntu-20.04
             archive: tar.gz tar.xz zip
           - target: aarch64-apple-darwin
             os: macos-latest
@@ -102,6 +99,63 @@ jobs:
           mkdir -p dist
           cp target/${{ matrix.target }}/release/cartesi-coprocessor.exe dist/
           powershell Compress-Archive -Path dist/* -DestinationPath cartesi-coprocessor-${{ matrix.target }}.zip
+
+      - name: Upload Packaged Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-packaged
+          path: |
+            cartesi-coprocessor-${{ matrix.target }}.zip
+            cartesi-coprocessor-${{ matrix.target }}.tar.gz
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            cartesi-coprocessor-${{ matrix.target }}.zip
+            cartesi-coprocessor-${{ matrix.target }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_x86_64_apple_darwin:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive: tar.gz tar.xz zip
+    needs: build_aarch64_apple_and_linux
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          profile: minimal
+
+      - name: Install Rust Target for Cross-Compilation
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build and test
+        run: cargo build --target ${{ matrix.target }} --release --verbose
+
+      - name: Package Binary
+        run: |
+          if ([[ "${{ matrix.os }}" == "windows-latest" ]]); then
+            mkdir -p dist
+            cp target/${{ matrix.target }}/release/cartesi-coprocessor.exe dist/
+            powershell Compress-Archive -Path dist/* -DestinationPath cartesi-coprocessor-${{ matrix.target }}.zip
+          else
+            mkdir -p dist
+            cp target/${{ matrix.target }}/release/cartesi-coprocessor dist/
+            tar -czvf cartesi-coprocessor-${{ matrix.target }}.tar.gz -C dist .
+          fi
 
       - name: Upload Packaged Binary
         uses: actions/upload-artifact@v4
