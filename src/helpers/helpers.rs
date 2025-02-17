@@ -1,7 +1,7 @@
 use crate::commands::deploy::deploy_contract;
 use crate::commands::publish::{
     devnet_register, devnet_register_program_with_coprocessor, mainnet_register,
-    register_program_with_coprocessor, testnet_register,
+    register_program_with_coprocessor, testnet_register, get_solver_url,
 };
 use colored::Colorize;
 use enum_iterator::{all, Sequence};
@@ -255,7 +255,7 @@ pub fn check_deploymet_args(
 ///
 /// @param `network` A `String` representing the network environment to check. It should be one of "devnet", "testnet", or "mainnet".
 /// @param `email` A `String` containing the email address to be used for registration (only for mainnet).
-pub fn check_registration_environment(network: String, email: Option<String>) {
+pub fn check_registration_environment(network: String, solver_env: String, email: Option<String>) {
     let mut environment: Option<DeploymentOptions> = None;
 
     for option in all::<DeploymentOptions>().collect::<Vec<_>>() {
@@ -267,7 +267,7 @@ pub fn check_registration_environment(network: String, email: Option<String>) {
     if environment.is_none() {
         println!(
             "{}",
-            "Invalid network environment, please select either, devnet, mainnet, or testnet".red()
+            "Invalid network environment, please select either devnet, mainnet, or testnet".red()
         );
         return;
     }
@@ -278,7 +278,7 @@ pub fn check_registration_environment(network: String, email: Option<String>) {
                 devnet_register();
             }
             DeploymentOptions::Testnet => {
-                testnet_register();
+                testnet_register(solver_env);
             }
             DeploymentOptions::Mainnet => {
                 if let Some(email) = email {
@@ -417,7 +417,7 @@ pub fn address_book() {
 
 /// @notice This function check the network passed then calls the appropriate function to check the status of a the registration process.
 /// @param network The network where the registration process is happening.
-pub fn check_network_and_confirm_status(network: String) {
+pub fn check_network_and_confirm_status(network: String, solver_env: String) {
     let mut environment: Option<DeploymentOptions> = None;
 
     for option in all::<DeploymentOptions>().collect::<Vec<_>>() {
@@ -429,7 +429,7 @@ pub fn check_network_and_confirm_status(network: String) {
     if environment.is_none() {
         println!(
             "{}",
-            "Invalid network environment, please select either, devnet, mainnet, or testnet".red()
+            "Invalid network environment, please select either devnet, mainnet, or testnet".red()
         );
         return;
     }
@@ -440,10 +440,10 @@ pub fn check_network_and_confirm_status(network: String) {
                 devnet_register_program_with_coprocessor(None, None);
             }
             DeploymentOptions::Testnet => {
-                register_program_with_coprocessor(String::from(
-                    "https://cartesi-coprocessor-solver-prod.fly.dev",
-                ));
+                let solver_url = get_solver_url(&solver_env);
+                register_program_with_coprocessor(solver_url);
             }
+
             DeploymentOptions::Mainnet => {
                 register_program_with_coprocessor(String::from(
                     "https://cartesi-coprocessor-solver.fly.dev",

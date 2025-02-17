@@ -32,6 +32,13 @@ enum Commands {
             help = "Environment where your program will be deployed to, e.g. Devnet, Mainnet or Testnet"
         )]
         network: String,
+
+        #[arg(
+            long,
+            default_value = "prod",
+            help = "Specify dev/test/prod for the solver environment"
+        )]
+        environment: String,
     },
     #[command(
         about = "Bootstrap a new directiry for your program",
@@ -68,6 +75,13 @@ enum Commands {
             help = "Environment where your program is registered to, e.g. Devnet, Mainnet or Testnet"
         )]
         network: String,
+
+        #[arg(
+            long,
+            default_value = "prod",
+            help = "Specify dev/test/prod for the solver environment"
+        )]
+        environment: String,
     },
 
     #[command(
@@ -129,12 +143,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(())
             }
 
-            Commands::Publish { email, network } => {
-                check_registration_environment(network, email);
+            Commands::Publish { email, network, environment } => {
+                check_registration_environment(network, environment, email);
                 Ok(())
             }
-            Commands::PublishStatus { network } => {
-                check_network_and_confirm_status(network);
+            Commands::PublishStatus { network, environment } => {
+                check_network_and_confirm_status(network, environment);
                 Ok(())
             }
 

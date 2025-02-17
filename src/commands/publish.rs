@@ -506,22 +506,22 @@ pub fn mainnet_register(email: String) {
 }
 
 /// @notice Entry point function to chain all the different functions required to register a new program on mainnet
-pub fn testnet_register() {
+pub fn testnet_register(solver_env: String) {
+    let solver_url = get_solver_url(&solver_env);
+
+
     match build_program() {
         true => match run_carize_container() {
-            true => match get_pre_signed_url(String::from(
-                "https://cartesi-coprocessor-solver-prod.fly.dev",
-            )) {
+            true => match get_pre_signed_url(solver_url.to_string()) {
                 Some(_response) => return,
                 None => return,
             },
             false => return,
         },
-        false => {
-            return;
-        }
+        false => return,
     }
 }
+
 
 /// @notice Entry point function to chain all the different functions required to register a new program in devnet mode.
 pub fn devnet_register() {
@@ -948,4 +948,14 @@ fn check_and_recal_devnet_solver_register(
             devnet_register_program_with_coprocessor(Some(new_spinner), Some(retries_count + 1));
         }
     }
+}
+
+pub fn get_solver_url(solver_env: &str) -> String {
+    match solver_env {
+        "dev"  => "https://cartesi-coprocessor-solver-dev.fly.dev",
+        "test" => "https://cartesi-coprocessor-solver-test.fly.dev",
+        "prod" => "https://cartesi-coprocessor-solver-prod.fly.dev",
+        _      => "https://cartesi-coprocessor-solver-prod.fly.dev",
+    }
+    .to_string()
 }
