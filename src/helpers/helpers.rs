@@ -6,12 +6,12 @@ use crate::commands::publish::{
 use colored::Colorize;
 use enum_iterator::{all, Sequence};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Duration;
+use std::{env, string};
 use std::{thread, time};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Sequence)]
@@ -255,7 +255,12 @@ pub fn check_deploymet_args(
 /// @param `network` A `String` representing the network environment to check. It should be one of "devnet", "testnet", or "mainnet".
 /// @param `email` A `String` containing the email address to be used for registration (only for mainnet).
 /// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
-pub fn check_registration_environment(network: String, solver_env: String, email: Option<String>) {
+pub fn check_registration_environment(
+    network: String,
+    solver_env: String,
+    email: Option<String>,
+    build: bool,
+) {
     let mut environment: Option<DeploymentOptions> = None;
 
     for option in all::<DeploymentOptions>().collect::<Vec<_>>() {
@@ -275,14 +280,14 @@ pub fn check_registration_environment(network: String, solver_env: String, email
     if let Some(deployment_env) = environment {
         match deployment_env {
             DeploymentOptions::Devnet => {
-                devnet_register();
+                devnet_register(build);
             }
             DeploymentOptions::Testnet => {
-                testnet_register(solver_env);
+                testnet_register(solver_env, build);
             }
             DeploymentOptions::Mainnet => {
                 if let Some(email) = email {
-                    mainnet_register(email);
+                    mainnet_register(email, build);
                 } else {
                     println!("{}", "Please enter a valid email linked to your web3 storage profile, using the '--email' flag".red());
                 }
@@ -463,4 +468,19 @@ pub fn get_solver_url(solver_env: &str) -> String {
         _ => "https://cartesi-coprocessor-solver-prod.fly.dev",
     }
     .to_string()
+}
+
+pub fn decode_string_to_bool(str: String, arg_name: &str) -> Result<bool, ()> {
+    match str.to_lowercase().as_str() {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => {
+            println!(
+                "{} contains {}",
+                arg_name.red(),
+                "invalid boolean value, please provide either true or false".red()
+            );
+            Err(())
+        }
+    }
 }

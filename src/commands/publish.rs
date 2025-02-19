@@ -481,29 +481,31 @@ fn check_and_upload() -> bool {
 
 /// @notice Entry point function to chain all the different functions required to register a new program on mainnet
 /// @param email The email of your choice, to be linked if not already to web3 storage
-pub fn mainnet_register(email: String) {
+pub fn mainnet_register(email: String, build: bool) {
     match check_if_logged_in(email.clone()) {
         true => {}
         false => {
             let _is_logged_in = login(email.clone());
         }
     };
-    match build_program() {
-        true => match run_carize_container() {
-            true => match check_and_create_space("cartesi-coprocessor-programs".to_string()) {
-                true => match check_and_upload() {
-                    true => {
-                        register_program_with_coprocessor(String::from(
-                            "https://cartesi-coprocessor-solver.fly.dev",
-                        ));
-                    }
-                    false => return,
-                },
+
+    if build {
+        if !build_program() {
+            return;
+        }
+    }
+
+    match run_carize_container() {
+        true => match check_and_create_space("cartesi-coprocessor-programs".to_string()) {
+            true => match check_and_upload() {
+                true => {
+                    register_program_with_coprocessor(String::from(
+                        "https://cartesi-coprocessor-solver.fly.dev",
+                    ));
+                }
                 false => return,
             },
-            false => {
-                return;
-            }
+            false => return,
         },
         false => {
             return;
@@ -513,32 +515,38 @@ pub fn mainnet_register(email: String) {
 
 /// @notice Entry point function to chain all the different functions required to register a new program on mainnet
 /// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
-pub fn testnet_register(solver_env: String) {
+/// @param `build` A `bool` specified by the user to configure if the program should be built again befor publishing.
+pub fn testnet_register(solver_env: String, build: bool) {
     let solver_url = get_solver_url(&solver_env);
 
-    match build_program() {
-        true => match run_carize_container() {
-            true => match get_pre_signed_url(solver_url.to_string()) {
-                Some(_response) => return,
-                None => return,
-            },
-            false => return,
+    if build {
+        if !build_program() {
+            return;
+        }
+    }
+
+    match run_carize_container() {
+        true => match get_pre_signed_url(solver_url.to_string()) {
+            Some(_response) => return,
+            None => return,
         },
         false => return,
     }
 }
 
 /// @notice Entry point function to chain all the different functions required to register a new program in devnet mode.
-pub fn devnet_register() {
-    match build_program() {
-        true => match run_carize_container() {
-            true => match devnet_upload_car_file() {
-                true => return,
-                false => return,
-            },
-            false => {
-                return;
-            }
+/// @param `build` A `bool` specified by the user to configure if the program should be built again befor publishing.
+pub fn devnet_register(build: bool) {
+    if build {
+        if !build_program() {
+            return;
+        }
+    }
+
+    match run_carize_container() {
+        true => match devnet_upload_car_file() {
+            true => return,
+            false => return,
         },
         false => {
             return;

@@ -1,13 +1,15 @@
 mod commands;
 mod helpers;
 use crate::commands::create::create;
-use crate::commands::devnet::{start_devnet, stop_devnet, update_devnet, reset_devnet};
+use crate::commands::devnet::{reset_devnet, start_devnet, stop_devnet, update_devnet};
 use crate::helpers::helpers::{check_dependencies_installed, check_network_and_confirm_status};
 use clap::{Parser, Subcommand};
 use helpers::helpers::{
     address_book, check_deployment_environment, check_registration_environment,
+    decode_string_to_bool,
 };
 use std::error::Error;
+use std::f32::consts::E;
 
 /// A CLI tool to interact with Web3.Storage
 #[derive(Parser)]
@@ -38,6 +40,13 @@ enum Commands {
 
         #[arg(
             long,
+            default_value = "true",
+            help = "Specify either 'true' or 'false' depending on if you'll want to build your program before running"
+        )]
+        build: String,
+
+        #[arg(
+            long,
             default_value = "prod",
             help = "Specify dev/test/prod for the solver environment"
         )]
@@ -48,7 +57,7 @@ enum Commands {
             default_value = "false",
             help = "If 'true', check solver status after uploading"
         )]
-        check_status: bool,
+        check_status: String,
     },
     #[command(
         about = "Bootstrap a new directiry for your program",
@@ -148,12 +157,23 @@ fn main() -> Result<(), Box<dyn Error>> {
             Commands::Publish {
                 email,
                 network,
+                build,
                 environment,
                 check_status,
             } => {
-                check_registration_environment(network.clone(), environment.clone(), email);
-                if check_status {
-                    check_network_and_confirm_status(network, environment);
+                let check_status = decode_string_to_bool(check_status, "check_status");
+                let build = decode_string_to_bool(build, "build");
+
+                if check_status != Err(()) && build != Err(()) {
+                    check_registration_environment(
+                        network.clone(),
+                        environment.clone(),
+                        email,
+                        build.unwrap(),
+                    );
+                    if check_status.unwrap() {
+                        check_network_and_confirm_status(network, environment);
+                    }
                 }
 
                 Ok(())

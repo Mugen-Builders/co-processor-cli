@@ -580,13 +580,18 @@ fn stop_devnet_safely() {
 
     match docker_status {
         Ok(child) => {
-            let output = child.wait_with_output().expect("Failed to wait on docker command");
+            let output = child
+                .wait_with_output()
+                .expect("Failed to wait on docker command");
             spinner.finish_and_clear();
             if output.status.success() {
                 println!("✅ Containers stopped (if any were running).");
             } else {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                println!("Note: Could not stop devnet containers or none running:\n{}", stderr);
+                println!(
+                    "Note: Could not stop devnet containers or none running:\n{}",
+                    stderr
+                );
             }
         }
         Err(err) => {
