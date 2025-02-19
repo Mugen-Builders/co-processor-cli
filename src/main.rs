@@ -1,7 +1,7 @@
 mod commands;
 mod helpers;
 use crate::commands::create::create;
-use crate::commands::devnet::{start_devnet, stop_devnet};
+use crate::commands::devnet::{start_devnet, stop_devnet, update_devnet, reset_devnet};
 use crate::helpers::helpers::{check_dependencies_installed, check_network_and_confirm_status};
 use clap::{Parser, Subcommand};
 use helpers::helpers::{
@@ -109,6 +109,12 @@ enum Commands {
         constructor_args: Option<Vec<String>>,
     },
 
+    #[command(about = "Pull the latest changes from the release branch for devnet")]
+    UpdateDevnet,
+
+    #[command(about = "Reset (delete & re-download) devnet")]
+    ResetDevnet,
+
     #[command(
         about = "Displays the machine Hash and also co-processor address on different networks",
         long_about = "Displays the machine Hash and also co-processor address on different networks"
@@ -169,6 +175,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
                 Ok(())
             }
+
+            Commands::UpdateDevnet => {
+                update_devnet();
+                Ok(())
+            }
+            Commands::ResetDevnet => {
+                reset_devnet();
+                Ok(())
+            }
+
             Commands::AddressBook => {
                 address_book();
                 Ok(())

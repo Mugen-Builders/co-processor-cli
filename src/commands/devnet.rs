@@ -467,3 +467,131 @@ fn checkout_release_branch(path: String) -> bool {
         return false;
     }
 }
+
+/// @notice Function to update the local devnet environment from the "release" branch
+pub fn update_devnet() {
+    let coprocessor_path = clone_coprocessor_repo();
+    match coprocessor_path {
+        Some(path) => {
+            println!("{}", "Updating devnet from release branch...".yellow());
+            if !change_branch(path.clone()) {
+                eprintln!("❌ Could not checkout release branch. Update aborted.");
+                return;
+            }
+
+            let pull_status = Command::new("git")
+                .arg("pull")
+                .arg("origin")
+                .arg("release")
+                .current_dir(&path)
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .expect("Failed to pull from release branch")
+                .wait_with_output()
+                .expect("Failed to complete git pull");
+
+            if pull_status.status.success() {
+                println!("✅ Successfully pulled latest changes from release branch.");
+            } else {
+                eprintln!("❌ Failed to pull from release branch:");
+                let stderr = String::from_utf8_lossy(&pull_status.stderr);
+                println!("{} {}", "GIT::RESPONSE::".red(), stderr.red());
+            }
+        }
+        None => {
+            eprintln!("❌ Failed to locate or clone Cartesi-Coprocessor repository.");
+        }
+    }
+}
+
+/// @notice Function to reset the local devnet environment (delete & re-clone the repo)
+pub fn reset_devnet() {
+    stop_devnet_safely();
+
+    let home_dir = env::var("HOME").expect("Failed to get HOME directory");
+    let copro_path = PathBuf::from(&home_dir).join(".cartesi-coprocessor-repo");
+
+    println!(
+        "{} {}",
+        "Resetting devnet repo at:".yellow(),
+        copro_path.display().to_string().yellow()
+    );
+
+    if copro_path.exists() {
+        if let Err(e) = fs::remove_dir_all(&copro_path) {
+            eprintln!("❌ Error removing devnet folder: {}", e);
+            return;
+        }
+        println!("✅ Removed existing devnet folder.");
+    }
+
+    let clone_status = Command::new("git")
+        .arg("clone")
+        .arg("https://github.com/zippiehq/cartesi-coprocessor")
+        .arg(&copro_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute git clone command")
+        .wait_with_output()
+        .expect("Failed to complete repository cloning");
+
+    if clone_status.status.success() {
+        println!("✅ Successfully re-cloned the devnet repository.");
+        if !change_branch(copro_path.to_string_lossy().to_string()) {
+            eprintln!("❌ Failed to checkout 'release' branch after cloning.");
+        } else {
+            let path_str = copro_path.to_string_lossy().to_string();
+            update_submodules(path_str.clone());
+            build_container(path_str.clone());
+            pull_container(path_str.clone());
+        }
+    } else {
+        eprintln!("❌ Failed to clone devnet repo:");
+        let stderr = String::from_utf8_lossy(&clone_status.stderr);
+        println!("{} {}", "GIT::RESPONSE::".red(), stderr.red());
+    }
+}
+
+/// @notice Safely attempts to stop devnet containers
+fn stop_devnet_safely() {
+    let home_dir = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let copro_path = PathBuf::from(&home_dir).join(".cartesi-coprocessor-repo");
+
+    if !copro_path.exists() {
+        println!("No devnet repo folder found; skipping container stop.");
+        return;
+    }
+
+    let spinner = get_spinner();
+    spinner.set_message("Attempting to stop devnet containers...");
+
+    let docker_status = Command::new("docker")
+        .arg("compose")
+        .arg("-f")
+        .arg("docker-compose-devnet.yaml")
+        .arg("down")
+        .arg("-v")
+        .current_dir(&copro_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn();
+
+    match docker_status {
+        Ok(child) => {
+            let output = child.wait_with_output().expect("Failed to wait on docker command");
+            spinner.finish_and_clear();
+            if output.status.success() {
+                println!("✅ Containers stopped (if any were running).");
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                println!("Note: Could not stop devnet containers or none running:\n{}", stderr);
+            }
+        }
+        Err(err) => {
+            spinner.finish_and_clear();
+            println!("Note: Could not run docker stop command ({}). Possibly no containers or Docker not running.", err);
+        }
+    }
+}
