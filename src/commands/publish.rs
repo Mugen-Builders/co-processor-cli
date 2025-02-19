@@ -903,7 +903,7 @@ fn devnet_upload_car_file() -> bool {
             {
                 println!(
                     "❌ {}",
-                    "Devnet container inactive, Attempting to start Devnet container..."
+                    "Devnet container inactive. Attempting to start Devnet container..."
                         .bright_yellow()
                 );
 
