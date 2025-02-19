@@ -22,10 +22,7 @@ enum Commands {
     #[command(
         about = "Build and run all necessary steps to register and publish your program with co-processor"
     )]
-
-    #[command(
-        about = "Build the Cartesi machine + generate the .car file (no uploading)."
-    )]
+    #[command(about = "Build the Cartesi machine + generate the .car file (no uploading).")]
     Build,
 
     Publish {
@@ -81,7 +78,6 @@ enum Commands {
         about = "Check the coprocessor solver for status of the program download process",
         long_about = "Check the coprocessor solver for status of the program download process"
     )]
-
     #[command(
         about = "Deploy the solidity code for your coprocessor program to any network of choice.",
         long_about = "Deploy the solidity code for your coprocessor program to any network of choice, by running the default deploy script (Deploy.s.sol)"
@@ -141,11 +137,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(())
             }
 
-            Commands::Build => {
-                Ok(())
-            }
+            Commands::Build => Ok(()),
 
-            Commands::Publish { email, network, environment, check_status } => {
+            Commands::Publish {
+                email,
+                network,
+                environment,
+                check_status,
+            } => {
                 check_registration_environment(network.clone(), environment.clone(), email);
                 if check_status {
                     check_network_and_confirm_status(network, environment);

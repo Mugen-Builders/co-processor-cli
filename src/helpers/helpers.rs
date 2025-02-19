@@ -1,7 +1,7 @@
 use crate::commands::deploy::deploy_contract;
 use crate::commands::publish::{
     devnet_register, devnet_register_program_with_coprocessor, mainnet_register,
-    register_program_with_coprocessor, testnet_register, get_solver_url,
+    register_program_with_coprocessor, testnet_register,
 };
 use colored::Colorize;
 use enum_iterator::{all, Sequence};
@@ -252,9 +252,9 @@ pub fn check_deploymet_args(
 /// @notice This function determines the deployment environment (Devnet, Testnet, or Mainnet)
 /// @notice based on the given network string. It then performs the appropriate registration
 /// @notice action for the specified environment using the provided email.
-///
 /// @param `network` A `String` representing the network environment to check. It should be one of "devnet", "testnet", or "mainnet".
 /// @param `email` A `String` containing the email address to be used for registration (only for mainnet).
+/// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
 pub fn check_registration_environment(network: String, solver_env: String, email: Option<String>) {
     let mut environment: Option<DeploymentOptions> = None;
 
@@ -451,4 +451,16 @@ pub fn check_network_and_confirm_status(network: String, solver_env: String) {
             }
         }
     }
+}
+
+/// @notice This function returns the appropriate solver URL based on the solver environment provided.
+/// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
+pub fn get_solver_url(solver_env: &str) -> String {
+    match solver_env {
+        "dev" => "https://cartesi-coprocessor-solver-dev.fly.dev",
+        "test" => "https://cartesi-coprocessor-solver-test.fly.dev",
+        "prod" => "https://cartesi-coprocessor-solver-prod.fly.dev",
+        _ => "https://cartesi-coprocessor-solver-prod.fly.dev",
+    }
+    .to_string()
 }

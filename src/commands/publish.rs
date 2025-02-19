@@ -1,6 +1,6 @@
 use crate::helpers::helpers::{
-    check_available_space, check_if_logged_in, display_machine_hash, get_machine_hash, get_spinner,
-    read_file, UploadResponse,
+    check_available_space, check_if_logged_in, display_machine_hash, get_machine_hash,
+    get_solver_url, get_spinner, read_file, UploadResponse,
 };
 use colored::Colorize;
 use indicatif::ProgressBar;
@@ -512,9 +512,9 @@ pub fn mainnet_register(email: String) {
 }
 
 /// @notice Entry point function to chain all the different functions required to register a new program on mainnet
+/// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
 pub fn testnet_register(solver_env: String) {
     let solver_url = get_solver_url(&solver_env);
-
 
     match build_program() {
         true => match run_carize_container() {
@@ -527,7 +527,6 @@ pub fn testnet_register(solver_env: String) {
         false => return,
     }
 }
-
 
 /// @notice Entry point function to chain all the different functions required to register a new program in devnet mode.
 pub fn devnet_register() {
@@ -958,14 +957,4 @@ fn check_and_recal_devnet_solver_register(
             devnet_register_program_with_coprocessor(Some(new_spinner), Some(retries_count + 1));
         }
     }
-}
-
-pub fn get_solver_url(solver_env: &str) -> String {
-    match solver_env {
-        "dev"  => "https://cartesi-coprocessor-solver-dev.fly.dev",
-        "test" => "https://cartesi-coprocessor-solver-test.fly.dev",
-        "prod" => "https://cartesi-coprocessor-solver-prod.fly.dev",
-        _      => "https://cartesi-coprocessor-solver-prod.fly.dev",
-    }
-    .to_string()
 }
