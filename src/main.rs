@@ -22,6 +22,9 @@ enum Commands {
     #[command(
         about = "Build and run all necessary steps to register and publish your program with co-processor"
     )]
+    #[command(about = "Build the Cartesi machine + generate the .car file (no uploading).")]
+    Build,
+
     Publish {
         #[arg(short, long, help = "Your email address registered with Web3.Storage")]
         email: Option<String>,
@@ -32,6 +35,20 @@ enum Commands {
             help = "Environment where your program will be deployed to, e.g. Devnet, Mainnet or Testnet"
         )]
         network: String,
+
+        #[arg(
+            long,
+            default_value = "prod",
+            help = "Specify dev/test/prod for the solver environment"
+        )]
+        environment: String,
+
+        #[arg(
+            long,
+            default_value = "false",
+            help = "If 'true', check solver status after uploading"
+        )]
+        check_status: bool,
     },
     #[command(
         about = "Bootstrap a new directiry for your program",
@@ -61,15 +78,6 @@ enum Commands {
         about = "Check the coprocessor solver for status of the program download process",
         long_about = "Check the coprocessor solver for status of the program download process"
     )]
-    PublishStatus {
-        #[arg(
-            short,
-            long,
-            help = "Environment where your program is registered to, e.g. Devnet, Mainnet or Testnet"
-        )]
-        network: String,
-    },
-
     #[command(
         about = "Deploy the solidity code for your coprocessor program to any network of choice.",
         long_about = "Deploy the solidity code for your coprocessor program to any network of choice, by running the default deploy script (Deploy.s.sol)"
@@ -129,12 +137,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(())
             }
 
-            Commands::Publish { email, network } => {
-                check_registration_environment(network, email);
-                Ok(())
-            }
-            Commands::PublishStatus { network } => {
-                check_network_and_confirm_status(network);
+            Commands::Build => Ok(()),
+
+            Commands::Publish {
+                email,
+                network,
+                environment,
+                check_status,
+            } => {
+                check_registration_environment(network.clone(), environment.clone(), email);
+                if check_status {
+                    check_network_and_confirm_status(network, environment);
+                }
+
                 Ok(())
             }
 
