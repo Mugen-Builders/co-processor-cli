@@ -23,14 +23,10 @@ enum Commands {
         about = "Build and run all necessary steps to register and publish your program with co-processor"
     )]
 
-    Build {
-        #[arg(
-            short,
-            long,
-            help = "Environment where your program will be built for, e.g. devnet, testnet, mainnet"
-        )]
-        network: String,
-    },
+    #[command(
+        about = "Build the Cartesi machine + generate the .car file (no uploading)."
+    )]
+    Build,
 
     Publish {
         #[arg(short, long, help = "Your email address registered with Web3.Storage")]
@@ -145,8 +141,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(())
             }
 
-            Commands::Build { network } => {
-                println!("Building for {}", network);
+            Commands::Build => {
                 Ok(())
             }
 
