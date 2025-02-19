@@ -219,6 +219,9 @@ fn build_program() -> bool {
 fn run_carize_container() -> bool {
     let current_dir = env::current_dir().expect("Failed to get current directory");
 
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+    std::fs::create_dir_all(&artifacts_dir).expect("Failed to create .cartesi/artifacts folder");
+
     println!("{}", "Running Cartesi Container...".yellow());
     let mut child = Command::new("docker")
         .arg("run")
@@ -234,7 +237,7 @@ fn run_carize_container() -> bool {
         .arg("-v")
         .arg(format!(
             "{}:/output",
-            current_dir
+            artifacts_dir
                 .to_str()
                 .expect("Failed to get current directory")
         ))
@@ -299,8 +302,9 @@ fn run_carize_container() -> bool {
 /// @notice Function to call the co-processor task manager to register the machine, hash, grogram cid etc.
 pub fn register_program_with_coprocessor(base_url: String) {
     let current_dir = env::current_dir().expect("Failed to get current directory");
-    let output_cid = current_dir.join("output.cid");
-    let output_size = current_dir.join("output.size");
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+    let output_cid = artifacts_dir.join("output.cid");
+    let output_size = artifacts_dir.join("output.size");
 
     let cid = read_file(
         output_cid
@@ -447,8 +451,10 @@ fn check_and_upload() -> bool {
     // Get the current directory
     let current_dir = env::current_dir().expect("Failed to get current directory");
 
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+
     // Build the full path to the CAR file
-    let car_file_path = current_dir.join(car_file_name);
+    let car_file_path = artifacts_dir.join("output.car");
 
     // Check if the file exists
     if !car_file_path.exists() {
@@ -639,8 +645,10 @@ fn upload_to_presigned_url(response: UploadResponse, solver_url: String) -> bool
     // Get the current directory
     let current_dir = env::current_dir().expect("Failed to get current directory");
 
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+
     // Build the full path to the CAR file
-    let car_file_path = current_dir.join(car_file_name);
+    let car_file_path = artifacts_dir.join("output.car");
 
     // Check if the file exists
     if !car_file_path.exists() {
@@ -831,8 +839,10 @@ fn devnet_upload_car_file() -> bool {
     // Get the current directory
     let current_dir = env::current_dir().expect("Failed to get current directory");
 
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+
     // Build the full path to the CAR file
-    let car_file_path = current_dir.join(car_file_name);
+    let car_file_path = artifacts_dir.join("output.car");
 
     // Check if the file exists
     if !car_file_path.exists() {
