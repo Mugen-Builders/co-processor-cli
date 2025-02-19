@@ -6,12 +6,12 @@ use crate::commands::publish::{
 use colored::Colorize;
 use enum_iterator::{all, Sequence};
 use indicatif::{ProgressBar, ProgressStyle};
+use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Duration;
-use std::{env, string};
 use std::{thread, time};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Sequence)]

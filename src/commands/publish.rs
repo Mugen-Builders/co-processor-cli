@@ -1,3 +1,4 @@
+use crate::commands::devnet::start_devnet;
 use crate::helpers::helpers::{
     check_available_space, check_if_logged_in, display_machine_hash, get_machine_hash,
     get_solver_url, get_spinner, read_file, UploadResponse,
@@ -902,9 +903,13 @@ fn devnet_upload_car_file() -> bool {
             {
                 println!(
                     "❌ {}",
-                    "Devnet container inactive, Please run the start-devnet command then try again!"
-                        .red()
+                    "Devnet container inactive, Attempting to start Devnet container..."
+                        .bright_yellow()
                 );
+
+                if start_devnet() {
+                    devnet_upload_car_file();
+                }
             }
             return false;
         }

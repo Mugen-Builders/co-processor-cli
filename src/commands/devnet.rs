@@ -8,7 +8,7 @@ use std::process::{Command, Stdio};
 use std::{thread, time};
 
 /// @notice Function to start a local development network set of docker containers for Cartesi-Coprocessor
-pub fn start_devnet() {
+pub fn start_devnet() -> bool {
     let coprocessor_path = clone_coprocessor_repo();
     match coprocessor_path {
         Some(path) => {
@@ -42,7 +42,8 @@ pub fn start_devnet() {
                                 println!(
                                     "✅ {}",
                                     "Cartesi-Coprocessor devnet environment started.".green()
-                                )
+                                );
+                                return true;
                             } else {
                                 spinner.finish_and_clear();
                                 eprintln!(
@@ -50,19 +51,21 @@ pub fn start_devnet() {
                                     "❌ Failed to start devnet containers:".red(),
                                     String::from_utf8_lossy(&docker_status.stderr).red()
                                 );
-                                return;
-                            }
+                                return false;
+                            };
+                        } else {
+                            return false;
                         }
                     }
-                    false => return,
-                };
+                    false => return false,
+                }
             } else {
-                return;
+                return false;
             }
         }
         None => {
             eprintln!("❌ Failed to clone Cartesi-Coprocessor repository.");
-            return;
+            return false;
         }
     }
 }

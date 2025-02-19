@@ -9,7 +9,6 @@ use helpers::helpers::{
     decode_string_to_bool,
 };
 use std::error::Error;
-use std::f32::consts::E;
 
 /// A CLI tool to interact with Web3.Storage
 #[derive(Parser)]
