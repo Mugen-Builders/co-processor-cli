@@ -517,6 +517,7 @@ pub fn mainnet_register(email: String, build: bool) {
 /// @notice Entry point function to chain all the different functions required to register a new program on mainnet
 /// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
 /// @param `build` A `bool` specified by the user to configure if the program should be built again befor publishing.
+/// @param solver_url_override An optional `String` that, if provided, completely overrides the solver URL.
 pub fn testnet_register(solver_env: String, build: bool, solver_url_override: Option<String>) {
     let solver_url = match solver_url_override {
         Some(url) => url,
