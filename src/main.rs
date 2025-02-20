@@ -65,8 +65,8 @@ enum Commands {
         solver_url: Option<String>,
     },
     #[command(
-        about = "Bootstrap a new directiry for your program",
-        long_about = "Bootstrap a new directiry for your coprocessor program, this would contain both the cartesi template and also the solidity template"
+        about = "Bootstrap a new directory for your program",
+        long_about = "Bootstrap a new directory for your coprocessor program, this would contain both the cartesi template and also the solidity template"
     )]
     Create {
         #[arg(short, long, help = "Name of your program")]
