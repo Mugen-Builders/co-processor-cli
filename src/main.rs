@@ -57,6 +57,12 @@ enum Commands {
             help = "If 'true', check solver status after uploading"
         )]
         check_status: String,
+
+        #[arg(
+            long,
+            help = "Optional custom solver URL to override the default solver URL"
+        )]
+        solver_url: Option<String>,
     },
     #[command(
         about = "Bootstrap a new directiry for your program",
@@ -159,6 +165,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 build,
                 environment,
                 check_status,
+                solver_url,
             } => {
                 let check_status = decode_string_to_bool(check_status, "check_status");
                 let build = decode_string_to_bool(build, "build");
@@ -169,6 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         environment.clone(),
                         email,
                         build.unwrap(),
+                        solver_url,
                     );
                     if check_status.unwrap() {
                         check_network_and_confirm_status(network, environment);

@@ -260,6 +260,7 @@ pub fn check_registration_environment(
     solver_env: String,
     email: Option<String>,
     build: bool,
+    solver_url_override: Option<String>,
 ) {
     let mut environment: Option<DeploymentOptions> = None;
 
@@ -283,7 +284,7 @@ pub fn check_registration_environment(
                 devnet_register(build);
             }
             DeploymentOptions::Testnet => {
-                testnet_register(solver_env, build);
+                testnet_register(solver_env, build, solver_url_override);
             }
             DeploymentOptions::Mainnet => {
                 if let Some(email) = email {
