@@ -255,11 +255,13 @@ pub fn check_deploymet_args(
 /// @param `network` A `String` representing the network environment to check. It should be one of "devnet", "testnet", or "mainnet".
 /// @param `email` A `String` containing the email address to be used for registration (only for mainnet).
 /// @param `solver_env` A `String` containing the user specified deployment environment for testnet.
+/// @param solver_url_override An optional `String` that, if provided, completely overrides the solver URL.
 pub fn check_registration_environment(
     network: String,
     solver_env: String,
     email: Option<String>,
     build: bool,
+    solver_url_override: Option<String>,
 ) {
     let mut environment: Option<DeploymentOptions> = None;
 
@@ -283,7 +285,7 @@ pub fn check_registration_environment(
                 devnet_register(build);
             }
             DeploymentOptions::Testnet => {
-                testnet_register(solver_env, build);
+                testnet_register(solver_env, build, solver_url_override);
             }
             DeploymentOptions::Mainnet => {
                 if let Some(email) = email {
