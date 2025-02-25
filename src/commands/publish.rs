@@ -563,8 +563,9 @@ pub fn devnet_register(build: bool) {
 /// @param spinner This is an instance of a spinner displayed to users to signify the running process.
 pub fn devnet_register_program_with_coprocessor(spinner: Option<ProgressBar>, retries: Option<u8>) {
     let current_dir = env::current_dir().expect("Failed to get current directory");
-    let output_cid = current_dir.join("output.cid");
-    let output_size = current_dir.join("output.size");
+    let artifacts_dir = current_dir.join(".cartesi").join("artifacts");
+    let output_cid = artifacts_dir.join("output.cid");
+    let output_size = artifacts_dir.join("output.size");
 
     let cid = read_file(
         output_cid
