@@ -1,6 +1,6 @@
 [package]
 name = "cartesi-coprocessor"
-version = "1.5.2"
+version = "1.5.3"
 authors = ["Mugen Builders", "Idogwu Chinonso"]
 edition = "2021"
 license = "Apache-2.0"
