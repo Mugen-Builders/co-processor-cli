@@ -2,6 +2,7 @@ mod commands;
 mod helpers;
 use crate::commands::create::create;
 use crate::commands::devnet::{reset_devnet, start_devnet, stop_devnet, update_devnet};
+use crate::commands::publish::build_cartesi_machine_and_generate_car;
 use crate::helpers::helpers::{check_dependencies_installed, check_network_and_confirm_status};
 use clap::{Parser, Subcommand};
 use helpers::helpers::{
@@ -9,7 +10,6 @@ use helpers::helpers::{
     decode_string_to_bool,
 };
 use std::error::Error;
-use crate::commands::publish::build_cartesi_machine_and_generate_car;
 
 /// A CLI tool to interact with Web3.Storage
 #[derive(Parser)]
@@ -159,11 +159,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
 
             Commands::Build => {
-                if build_cartesi_machine_and_generate_car() {
-                    println!("Build successful!");
-                } else {
-                    println!("Build failed!");
-                }
+                build_cartesi_machine_and_generate_car();
                 Ok(())
             }
 

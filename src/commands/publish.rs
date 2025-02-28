@@ -210,7 +210,7 @@ fn build_program() -> bool {
         spinner.finish_and_clear();
         let stderr = String::from_utf8_lossy(&child.stderr);
         println!("{} {}", "CARTESI::".red(), stderr.red());
-        eprintln!("{}", "build process failed.".red());
+        eprintln!("❌ {}", "build process failed.".red());
         return false;
     }
 }
@@ -977,19 +977,24 @@ fn check_and_recal_devnet_solver_register(
     }
 }
 
+// @notice This function attempts to build and generate the necessary car files for the cartesi program
 pub fn build_cartesi_machine_and_generate_car() -> bool {
-    println!("Calling build_program()...");
+    println!("{}", "Calling build_program()....".yellow());
     if !build_program() {
-        println!("build_program() failed.");
+        println!("❌ {}", "build_program() failed...".red());
         return false;
     }
-    println!("build_program() succeeded, now calling run_carize_container()...");
+
+    println!(
+        "{}",
+        "build_program() succeeded, now calling run_carize_container()...".yellow()
+    );
+
     if !run_carize_container() {
-        println!("run_carize_container() failed.");
+        println!("{}", "❌ run_carize_container() failed.".red());
         return false;
     }
-    println!("run_carize_container() succeeded.");
+    println!("{}", "✅ run_carize_container() succeeded.".green());
+
     true
 }
-
-
