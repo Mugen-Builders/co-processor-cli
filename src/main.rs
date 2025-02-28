@@ -9,6 +9,7 @@ use helpers::helpers::{
     decode_string_to_bool,
 };
 use std::error::Error;
+use crate::commands::publish::build_cartesi_machine_and_generate_car;
 
 /// A CLI tool to interact with Web3.Storage
 #[derive(Parser)]
@@ -157,7 +158,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(())
             }
 
-            Commands::Build => Ok(()),
+            Commands::Build => {
+                if build_cartesi_machine_and_generate_car() {
+                    println!("Build successful!");
+                } else {
+                    println!("Build failed!");
+                }
+                Ok(())
+            }
 
             Commands::Publish {
                 email,

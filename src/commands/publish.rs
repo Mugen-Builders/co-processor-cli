@@ -976,3 +976,20 @@ fn check_and_recal_devnet_solver_register(
         }
     }
 }
+
+pub fn build_cartesi_machine_and_generate_car() -> bool {
+    println!("Calling build_program()...");
+    if !build_program() {
+        println!("build_program() failed.");
+        return false;
+    }
+    println!("build_program() succeeded, now calling run_carize_container()...");
+    if !run_carize_container() {
+        println!("run_carize_container() failed.");
+        return false;
+    }
+    println!("run_carize_container() succeeded.");
+    true
+}
+
+
