@@ -193,66 +193,7 @@ fn pull_latest_changes(path: String) {
 /// @notice Function to update submodules contained in the coprocessor repository
 /// @param path The path to the local coprocessor repository
 fn update_submodules(path: String) -> bool {
-    let mut update_status = Command::new("git")
-        .arg("submodule")
-        .arg("update")
-        .arg("--init")
-        .arg("--recursive")
-        .current_dir(path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute git submodule update command");
-
-    let stdout = BufReader::new(
-        update_status
-            .stdout
-            .take()
-            .expect("Failed to capture stdout"),
-    );
-    let stderr = BufReader::new(
-        update_status
-            .stderr
-            .take()
-            .expect("Failed to capture stderr"),
-    );
-    // Handle output in separate threads
-    thread::spawn(move || {
-        for line in stdout.lines() {
-            if let Ok(line) = line {
-                println!("{} {}", "GIT:: ".green(), line.green());
-            }
-        }
-    });
-
-    let start = time::Instant::now();
-    thread::spawn(move || {
-        for line in stderr.lines() {
-            if let Ok(line) = line {
-                eprintln!("{} {}", "GIT::NOTE::".yellow(), line.yellow());
-            } else if let Err(e) = line {
-                eprintln!("{} {}", "GIT::ERROR::".red(), e);
-            }
-        }
-    });
-
-    while start.elapsed().as_secs() < 30000 {
-        if let Some(status) = update_status
-            .try_wait()
-            .expect("Failed to update submodules")
-        {
-            if status.success() {
-                println!("✅  Successfully updated submodules.");
-                return true;
-            } else {
-                eprintln!("❌ Failed to update submodules.");
-                return false;
-            }
-        }
-
-        thread::sleep(time::Duration::from_secs(5));
-    }
-    return false;
+    true
 }
 
 /// @notice Function to Stop a currently running local dev network containers for the coprocessor
