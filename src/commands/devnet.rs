@@ -2,65 +2,58 @@ use crate::helpers::helpers::get_spinner;
 use colored::Colorize;
 use std::env;
 use std::fs;
-use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::{thread, time};
 
 /// @notice Function to start a local development network set of docker containers for Cartesi-Coprocessor
 pub fn start_devnet() -> bool {
     let coprocessor_path = clone_coprocessor_repo();
     match coprocessor_path {
         Some(path) => {
-            if change_branch(path.clone()) == true {
-                match update_submodules(path.clone()) {
-                    true => {
-                        if build_container(path.clone()) == true
-                            && pull_container(path.clone()) == true
-                        {
-                            let spinner = get_spinner();
-                            spinner.set_message("Starting devnet containers...");
+            match change_branch(path.clone()) {
+                true => {
+                    if build_container(path.clone()) == true && pull_container(path.clone()) == true
+                    {
+                        let spinner = get_spinner();
+                        spinner.set_message("Starting devnet containers...");
 
-                            // Run Cartesi-Coprocessor in the background
-                            let docker_status = Command::new("docker")
-                                .arg("compose")
-                                .arg("-f")
-                                .arg("docker-compose-devnet.yaml")
-                                .arg("up")
-                                .arg("--wait")
-                                .arg("-d")
-                                .current_dir(path)
-                                .stdout(Stdio::piped())
-                                .stderr(Stdio::piped())
-                                .spawn()
-                                .expect("Failed to start Cartesi-Coprocessor devnet environment")
-                                .wait_with_output()
-                                .expect("Failed to complete git status check");
+                        // Run Cartesi-Coprocessor in the background
+                        let docker_status = Command::new("docker")
+                            .arg("compose")
+                            .arg("-f")
+                            .arg("docker-compose-devnet.yaml")
+                            .arg("up")
+                            .arg("--wait")
+                            .arg("-d")
+                            .current_dir(path)
+                            .stdout(Stdio::piped())
+                            .stderr(Stdio::piped())
+                            .spawn()
+                            .expect("Failed to start Cartesi-Coprocessor devnet environment")
+                            .wait_with_output()
+                            .expect("Failed to complete git status check");
 
-                            if docker_status.status.success() {
-                                spinner.finish_and_clear();
-                                println!(
-                                    "✅ {}",
-                                    "Cartesi-Coprocessor devnet environment started.".green()
-                                );
-                                return true;
-                            } else {
-                                spinner.finish_and_clear();
-                                eprintln!(
-                                    "{} \n{}",
-                                    "❌ Failed to start devnet containers:".red(),
-                                    String::from_utf8_lossy(&docker_status.stderr).red()
-                                );
-                                return false;
-                            };
+                        if docker_status.status.success() {
+                            spinner.finish_and_clear();
+                            println!(
+                                "✅ {}",
+                                "Cartesi-Coprocessor devnet environment started.".green()
+                            );
+                            return true;
                         } else {
+                            spinner.finish_and_clear();
+                            eprintln!(
+                                "{} \n{}",
+                                "❌ Failed to start devnet containers:".red(),
+                                String::from_utf8_lossy(&docker_status.stderr).red()
+                            );
                             return false;
-                        }
+                        };
+                    } else {
+                        return false;
                     }
-                    false => return false,
                 }
-            } else {
-                return false;
+                false => return false,
             }
         }
         None => {
@@ -189,70 +182,6 @@ fn pull_latest_changes(path: String) {
         let stderr = String::from_utf8_lossy(&pull_status.stderr);
         println!("{} {}", "GIT::RESPONSE::".red(), stderr.red());
     }
-}
-/// @notice Function to update submodules contained in the coprocessor repository
-/// @param path The path to the local coprocessor repository
-fn update_submodules(path: String) -> bool {
-    let mut update_status = Command::new("git")
-        .arg("submodule")
-        .arg("update")
-        .arg("--init")
-        .arg("--recursive")
-        .current_dir(path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute git submodule update command");
-
-    let stdout = BufReader::new(
-        update_status
-            .stdout
-            .take()
-            .expect("Failed to capture stdout"),
-    );
-    let stderr = BufReader::new(
-        update_status
-            .stderr
-            .take()
-            .expect("Failed to capture stderr"),
-    );
-    // Handle output in separate threads
-    thread::spawn(move || {
-        for line in stdout.lines() {
-            if let Ok(line) = line {
-                println!("{} {}", "GIT:: ".green(), line.green());
-            }
-        }
-    });
-
-    let start = time::Instant::now();
-    thread::spawn(move || {
-        for line in stderr.lines() {
-            if let Ok(line) = line {
-                eprintln!("{} {}", "GIT::NOTE::".yellow(), line.yellow());
-            } else if let Err(e) = line {
-                eprintln!("{} {}", "GIT::ERROR::".red(), e);
-            }
-        }
-    });
-
-    while start.elapsed().as_secs() < 30000 {
-        if let Some(status) = update_status
-            .try_wait()
-            .expect("Failed to update submodules")
-        {
-            if status.success() {
-                println!("✅  Successfully updated submodules.");
-                return true;
-            } else {
-                eprintln!("❌ Failed to update submodules.");
-                return false;
-            }
-        }
-
-        thread::sleep(time::Duration::from_secs(5));
-    }
-    return false;
 }
 
 /// @notice Function to Stop a currently running local dev network containers for the coprocessor
@@ -546,7 +475,6 @@ pub fn reset_devnet() {
             eprintln!("❌ Failed to checkout 'release' branch after cloning.");
         } else {
             let path_str = copro_path.to_string_lossy().to_string();
-            update_submodules(path_str.clone());
             build_container(path_str.clone());
             pull_container(path_str.clone());
         }
