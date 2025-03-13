@@ -27,6 +27,9 @@ enum Commands {
     #[command(about = "Build the Cartesi machine + generate the .car file (no uploading).")]
     Build,
 
+    #[command(
+        about = "Build and run all necessary steps to register and publish your program with co-processor"
+    )]
     Publish {
         #[arg(short, long, help = "Your email address registered with Web3.Storage")]
         email: Option<String>,
